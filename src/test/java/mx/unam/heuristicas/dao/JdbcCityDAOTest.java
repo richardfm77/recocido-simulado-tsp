@@ -75,7 +75,6 @@ class JdbcCityDAOTest {
                                 0.000001);
         }
 
-
         @Test
         void findAllShouldReturnAllCitys() throws Exception {
 
@@ -84,5 +83,21 @@ class JdbcCityDAOTest {
                 assertFalse(result.isEmpty());
 
                 assertEquals(1092, result.size());
+        }
+
+        @Test
+        void findCitiesByIdsShouldReturnRequestedCitiesOrderedById() {
+
+                int[] cityIds = { 4, 1, 3, 2 };
+
+                List<City> cities = cityDAO.findCitiesByIds(cityIds);
+
+                assertNotNull(cities);
+                assertEquals(4, cities.size());
+
+                assertEquals(1, cities.get(0).getId());
+                assertEquals(2, cities.get(1).getId());
+                assertEquals(3, cities.get(2).getId());
+                assertEquals(4, cities.get(3).getId());
         }
 }

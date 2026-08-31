@@ -4,13 +4,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import mx.unam.heuristicas.config.DatabaseConnection;
 import mx.unam.heuristicas.dao.ConnectionDAO;
 import mx.unam.heuristicas.model.Connection;
+import mx.unam.heuristicas.util.HelperBD;
 
 public final class JdbcConnectionDAO implements ConnectionDAO {
 
@@ -33,7 +33,7 @@ public final class JdbcConnectionDAO implements ConnectionDAO {
             return List.of();
         }
 
-        String placeholders = createPlaceholders(
+        String placeholders = HelperBD.createPlaceholders(
                 cityIds.length);
 
         String sql = """
@@ -91,13 +91,5 @@ public final class JdbcConnectionDAO implements ConnectionDAO {
         }
 
         return connections;
-    }
-
-    private static String createPlaceholders(int amount) {
-        return String.join(
-                ",",
-                Collections.nCopies(
-                        amount,
-                        "?"));
     }
 }

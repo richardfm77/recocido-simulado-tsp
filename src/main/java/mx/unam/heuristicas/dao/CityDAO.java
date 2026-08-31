@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CityDAO {
-    // Funciones Genericas
+
     Optional<City> findById(int id) throws SQLException;
 
     List<City> findAll() throws SQLException;
+
+    List<City> findCitiesByIds(int[] cityIds);
 }
