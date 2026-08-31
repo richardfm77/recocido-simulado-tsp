@@ -7,32 +7,14 @@ import java.util.Objects;
 public final class TspCostFunction
         implements ObjectiveFunction<TspSolution> {
 
-    private final double[][] weights;
-    private final double normalizer;
+    private final TspInstance instance;
 
-    public TspCostFunction(
-            double[][] weights,
-            double normalizer
-    ) {
-        Objects.requireNonNull(
-                weights,
-                "La matriz de pesos no puede ser null"
-        );
-
-        if (weights.length == 0) {
-            throw new IllegalArgumentException(
-                    "La matriz de pesos no puede estar vacía"
-            );
-        }
-
-        if (normalizer <= 0.0 || !Double.isFinite(normalizer)) {
-            throw new IllegalArgumentException(
-                    "El normalizador debe ser positivo y finito"
-            );
-        }
-
-        this.weights = weights;
-        this.normalizer = normalizer;
+    public TspCostFunction(TspInstance instance) {
+        this.instance =
+                Objects.requireNonNull(
+                        instance,
+                        "La instancia TSP no puede ser null"
+                );
     }
 
     @Override
@@ -47,15 +29,20 @@ public final class TspCostFunction
 
         for (int i = 1; i < solution.size(); i++) {
 
-            int previousCity =
+            int previous =
                     solution.get(i - 1);
 
-            int currentCity =
+            int current =
                     solution.get(i);
 
-            totalCost += weights[previousCity][currentCity];
+            totalCost +=
+                    instance.getWeight(
+                            previous,
+                            current
+                    );
         }
 
-        return totalCost / normalizer;
+        return totalCost /
+                instance.getNormalizer();
     }
 }

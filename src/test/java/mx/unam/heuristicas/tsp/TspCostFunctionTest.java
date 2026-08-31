@@ -18,10 +18,16 @@ class TspCostFunctionTest {
                 {40.0, 50.0, 15.0, 0.0}
         };
 
-        TspCostFunction costFunction =
-                new TspCostFunction(
+        TspInstance instance =
+                new TspInstance(
+                        new int[]{1, 2, 3, 4},
                         weights,
                         100.0
+                );
+        
+        TspCostFunction costFunction =
+                new TspCostFunction(
+                        instance
                 );
 
         TspSolution solution =
