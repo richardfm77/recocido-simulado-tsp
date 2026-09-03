@@ -10,13 +10,11 @@ public final class TspSolution {
     public TspSolution(int[] permutation) {
         Objects.requireNonNull(
                 permutation,
-                "La permutación no puede ser null"
-        );
+                "La permutación no puede ser null");
 
         if (permutation.length < 2) {
             throw new IllegalArgumentException(
-                    "Una solución TSP debe contener al menos dos ciudades"
-            );
+                    "Una solución TSP debe contener al menos dos ciudades");
         }
 
         this.permutation = permutation;
@@ -37,5 +35,22 @@ public final class TspSolution {
     @Override
     public String toString() {
         return Arrays.toString(permutation);
+    }
+
+    public static TspSolution initial(int size) {
+
+        if (size < 2) {
+            throw new IllegalArgumentException(
+                    "Una solución TSP debe contener al menos dos ciudades");
+        }
+
+        int[] permutation = new int[size];
+
+        for (int i = 0; i < size; i++) {
+            permutation[i] = i;
+        }
+
+        return new TspSolution(
+                permutation);
     }
 }
