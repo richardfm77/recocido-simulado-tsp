@@ -19,7 +19,7 @@ public final class TspSolution {
             );
         }
 
-        this.permutation = permutation.clone();
+        this.permutation = permutation;
     }
 
     public int size() {
