@@ -2,6 +2,7 @@ package mx.unam.heuristicas.dao.jdbc;
 
 import mx.unam.heuristicas.config.DatabaseConnection;
 import mx.unam.heuristicas.dao.CityDAO;
+import mx.unam.heuristicas.exception.AppException;
 import mx.unam.heuristicas.model.City;
 import mx.unam.heuristicas.util.HelperBD;
 
@@ -23,7 +24,7 @@ public class JdbcCityDAO implements CityDAO {
     }
 
     @Override
-    public Optional<City> findById(int id) throws SQLException {
+    public Optional<City> findById(int id) throws AppException {
 
         String sql = """
                 SELECT
@@ -49,13 +50,17 @@ public class JdbcCityDAO implements CityDAO {
                     return Optional.of(mapCity(resultSet));
                 }
             }
+        } catch (SQLException e) {
+            throw new AppException(
+                    "Error al consultar la ciudad por ID",
+                    e);
         }
 
         return Optional.empty();
     }
 
     @Override
-    public List<City> findAll() throws SQLException {
+    public List<City> findAll() throws AppException {
 
         String sql = """
                 SELECT
@@ -78,13 +83,17 @@ public class JdbcCityDAO implements CityDAO {
             while (resultSet.next()) {
                 cities.add(mapCity(resultSet));
             }
+        } catch (SQLException e) {
+            throw new AppException(
+                    "Error al consultar todas las ciudades",
+                    e);
         }
 
         return cities;
     }
 
     @Override
-    public List<City> findCitiesByIds(int[] cityIds) {
+    public List<City> findCitiesByIds(int[] cityIds) throws AppException {
 
         Objects.requireNonNull(
                 cityIds,
@@ -129,19 +138,12 @@ public class JdbcCityDAO implements CityDAO {
 
                 while (resultSet.next()) {
 
-                    cities.add(
-                            new City(
-                                    resultSet.getInt("id"),
-                                    resultSet.getString("name"),
-                                    resultSet.getString("country"),
-                                    resultSet.getInt("population"),
-                                    resultSet.getDouble("latitude"),
-                                    resultSet.getDouble("longitude")));
+                    cities.add(mapCity(resultSet));
                 }
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(
+            throw new AppException(
                     "Error al consultar ciudades por IDs",
                     e);
         }

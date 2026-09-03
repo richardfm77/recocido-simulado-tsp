@@ -4,30 +4,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import mx.unam.heuristicas.exception.AppException;
+
 public class DatabaseConfig {
 
     private final Properties properties = new Properties();
 
-    public DatabaseConfig(String resourceName) {
+    public DatabaseConfig(String resourceName) throws AppException {
 
-        try (InputStream input =
-                     getClass()
-                         .getClassLoader()
-                         .getResourceAsStream(resourceName)) {
+        try (InputStream input = getClass()
+                .getClassLoader()
+                .getResourceAsStream(resourceName)) {
 
             if (input == null) {
-                throw new IllegalArgumentException(
-                        "No se encontró el archivo: " + resourceName
-                );
+                throw new AppException(
+                        "No se encontró el archivo de configuración BD: " + resourceName);
             }
 
             properties.load(input);
 
         } catch (IOException e) {
-            throw new RuntimeException(
+            throw new AppException(
                     "Error leyendo configuración de base de datos",
-                    e
-            );
+                    e);
         }
     }
 

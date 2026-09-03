@@ -6,12 +6,14 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
+import mx.unam.heuristicas.exception.AppException;
+
 public final class TspFileReader {
 
     private TspFileReader() {
     }
 
-    public static int[] read(Path path) {
+    public static int[] read(Path path) throws IllegalArgumentException, AppException{
 
         if (path == null) {
             throw new IllegalArgumentException(
@@ -24,7 +26,7 @@ public final class TspFileReader {
         try {
             content = Files.readString(path);
         } catch (IOException e) {
-            throw new IllegalArgumentException(
+            throw new AppException(
                     "No se pudo leer el archivo TSP: " + path,
                     e
             );
@@ -36,7 +38,7 @@ public final class TspFileReader {
     private static int[] parse(String content) {
 
         if (content == null || content.isBlank()) {
-            throw new IllegalArgumentException(
+            throw new AppException(
                     "El archivo TSP está vacío"
             );
         }
@@ -53,7 +55,7 @@ public final class TspFileReader {
         String[] tokens = cleaned.split(",");
 
         if (tokens.length < 2) {
-            throw new IllegalArgumentException(
+            throw new AppException(
                     "La instancia TSP debe contener al menos dos ciudades"
             );
         }
@@ -67,7 +69,7 @@ public final class TspFileReader {
             String token = tokens[i].trim();
 
             if (token.isEmpty()) {
-                throw new IllegalArgumentException(
+                throw new AppException(
                         "Se encontró un ID vacío en la posición " + i
                 );
             }
@@ -77,20 +79,20 @@ public final class TspFileReader {
             try {
                 cityId = Integer.parseInt(token);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException(
+                throw new AppException(
                         "ID de ciudad inválido: " + token,
                         e
                 );
             }
 
             if (cityId <= 0) {
-                throw new IllegalArgumentException(
+                throw new AppException(
                         "El ID de ciudad debe ser positivo: " + cityId
                 );
             }
 
             if (!seenIds.add(cityId)) {
-                throw new IllegalArgumentException(
+                throw new AppException(
                         "La ciudad está repetida en la instancia: " + cityId
                 );
             }

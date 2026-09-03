@@ -2,6 +2,8 @@ package mx.unam.heuristicas.tsp;
 
 import org.junit.jupiter.api.Test;
 
+import mx.unam.heuristicas.exception.AppException;
+
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 
@@ -55,7 +57,7 @@ class TspFileReaderTest {
                 Path path = getResourcePath("duplicates.tsp");
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                AppException.class,
                                 () -> TspFileReader.read(path));
         }
 
@@ -66,7 +68,7 @@ class TspFileReaderTest {
                 Path path = getResourcePath("invalid-id.tsp");
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                AppException.class,
                                 () -> TspFileReader.read(path));
         }
 
@@ -77,7 +79,7 @@ class TspFileReaderTest {
                 Path path = getResourcePath("empty.tsp");
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                AppException.class,
                                 () -> TspFileReader.read(path));
         }
 
@@ -88,7 +90,7 @@ class TspFileReaderTest {
                                 "archivo-que-no-existe.tsp");
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                AppException.class,
                                 () -> TspFileReader.read(path));
         }
 

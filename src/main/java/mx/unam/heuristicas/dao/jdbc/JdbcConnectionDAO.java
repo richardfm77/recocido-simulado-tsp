@@ -9,87 +9,87 @@ import java.util.Objects;
 
 import mx.unam.heuristicas.config.DatabaseConnection;
 import mx.unam.heuristicas.dao.ConnectionDAO;
+import mx.unam.heuristicas.exception.AppException;
 import mx.unam.heuristicas.model.Connection;
 import mx.unam.heuristicas.util.HelperBD;
 
 public final class JdbcConnectionDAO implements ConnectionDAO {
 
-    private final DatabaseConnection databaseConnection;
+        private final DatabaseConnection databaseConnection;
 
-    public JdbcConnectionDAO(
-            DatabaseConnection databaseConnection) {
-        this.databaseConnection = Objects.requireNonNull(
-                databaseConnection);
-    }
-
-    @Override
-    public List<Connection> findConnectionsBetweenCities(int[] cityIds) {
-
-        Objects.requireNonNull(
-                cityIds,
-                "Los IDs no pueden ser null");
-
-        if (cityIds.length == 0) {
-            return List.of();
+        public JdbcConnectionDAO(DatabaseConnection databaseConnection) {
+                this.databaseConnection = Objects.requireNonNull(
+                                databaseConnection);
         }
 
-        String placeholders = HelperBD.createPlaceholders(
-                cityIds.length);
+        @Override
+        public List<Connection> findConnectionsBetweenCities(int[] cityIds) throws AppException{
 
-        String sql = """
-                SELECT id_city_1,
-                       id_city_2,
-                       distance
-                FROM connections
-                WHERE id_city_1 IN (%s)
-                  AND id_city_2 IN (%s)
-                """.formatted(
-                placeholders,
-                placeholders);
+                Objects.requireNonNull(
+                                cityIds,
+                                "Los IDs no pueden ser null");
 
-        List<Connection> connections = new ArrayList<>();
-
-        try (
-                java.sql.Connection connectionDB = databaseConnection.getConnection();
-
-                PreparedStatement statement = connectionDB.prepareStatement(sql)) {
-
-            int parameterIndex = 1;
-
-            for (int cityId : cityIds) {
-                statement.setInt(
-                        parameterIndex++,
-                        cityId);
-            }
-
-            for (int cityId : cityIds) {
-                statement.setInt(
-                        parameterIndex++,
-                        cityId);
-            }
-
-            try (
-                    ResultSet resultSet = statement.executeQuery()) {
-
-                while (resultSet.next()) {
-
-                    connections.add(
-                            new Connection(
-                                    resultSet.getInt(
-                                            "id_city_1"),
-                                    resultSet.getInt(
-                                            "id_city_2"),
-                                    resultSet.getDouble(
-                                            "distance")));
+                if (cityIds.length == 0) {
+                        return List.of();
                 }
-            }
 
-        } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Error al consultar conexiones",
-                    e);
+                String placeholders = HelperBD.createPlaceholders(
+                                cityIds.length);
+
+                String sql = """
+                                SELECT id_city_1,
+                                       id_city_2,
+                                       distance
+                                FROM connections
+                                WHERE id_city_1 IN (%s)
+                                  AND id_city_2 IN (%s)
+                                """.formatted(
+                                placeholders,
+                                placeholders);
+
+                List<Connection> connections = new ArrayList<>();
+
+                try (
+                                java.sql.Connection connectionDB = databaseConnection.getConnection();
+
+                                PreparedStatement statement = connectionDB.prepareStatement(sql)) {
+
+                        int parameterIndex = 1;
+
+                        for (int cityId : cityIds) {
+                                statement.setInt(
+                                                parameterIndex++,
+                                                cityId);
+                        }
+
+                        for (int cityId : cityIds) {
+                                statement.setInt(
+                                                parameterIndex++,
+                                                cityId);
+                        }
+
+                        try (
+                                        ResultSet resultSet = statement.executeQuery()) {
+
+                                while (resultSet.next()) {
+
+                                        connections.add(
+                                                        new Connection(
+                                                                        resultSet.getInt(
+                                                                                        "id_city_1"),
+                                                                        resultSet.getInt(
+                                                                                        "id_city_2"),
+                                                                        resultSet.getDouble(
+                                                                                        "distance")));
+                                }
+                        }
+
+                } catch (SQLException e) {
+                        throw new AppException(
+                                        "Error al consultar conexiones",
+                                        e);
+                }
+
+                return connections;
         }
-
-        return connections;
-    }
 }

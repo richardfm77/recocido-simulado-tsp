@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import mx.unam.heuristicas.exception.AppException;
+
 public class DatabaseConnection {
 
     private final DatabaseConfig config;
@@ -12,16 +14,22 @@ public class DatabaseConnection {
         this.config = config;
     }
 
-    public Connection getConnection() throws SQLException {
+    public Connection getConnection() throws AppException {
 
-        if ("sqlite".equalsIgnoreCase(config.getType())) {
+        try {
+            if ("sqlite".equalsIgnoreCase(config.getType())) {
+                return DriverManager.getConnection(
+                        config.getUrl());
+            }
+
             return DriverManager.getConnection(
-                    config.getUrl());
+                    config.getUrl(),
+                    config.getUser(),
+                    config.getPassword());
+        } catch (SQLException e) {
+            throw new AppException(
+                    "Error al establecer la conexión con la base de datos",
+                    e);
         }
-
-        return DriverManager.getConnection(
-                config.getUrl(),
-                config.getUser(),
-                config.getPassword());
     }
 }
