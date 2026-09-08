@@ -131,7 +131,7 @@ class TspInstanceFactoryTest {
                 assertEquals(
                                 connection.getDistance(),
                                 calculatedDistance,
-                                0.01);
+                                DoublePrecision.TOLERANCE);
         }
 
         @Test
