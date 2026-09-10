@@ -109,6 +109,10 @@ public final class ExperimentRunner {
                         ConfigurationResult<TspSolution> champion = selectChampion(
                                         configurationResults);
 
+                        reportWriter.writeGenerationSummary(
+                                        generation,
+                                        champion);
+
                         printGenerationSummary(
                                         generation,
                                         champion);
@@ -151,7 +155,7 @@ public final class ExperimentRunner {
                                         objectiveFunction,
                                         neighborhood,
                                         state,
-                                        reportWriter);   
+                                        reportWriter);
                         configurationResults.add(
                                         configurationResult);
                 }
@@ -184,8 +188,8 @@ public final class ExperimentRunner {
                                         objectiveFunction,
                                         neighborhood);
 
-                        reportWriter.writeRun(result);         
-                        
+                        reportWriter.writeRun(result);
+
                         results.add(
                                         result);
 

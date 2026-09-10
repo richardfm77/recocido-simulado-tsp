@@ -1,6 +1,7 @@
 package mx.unam.heuristicas.report;
 
 import mx.unam.heuristicas.exception.AppException;
+import mx.unam.heuristicas.heuristic.experiment.ConfigurationResult;
 import mx.unam.heuristicas.heuristic.experiment.ExperimentParameters;
 import mx.unam.heuristicas.heuristic.experiment.ExperimentResult;
 
@@ -18,6 +19,7 @@ public final class ExperimentReportWriter<S>
 
     private final BufferedWriter runsWriter;
     private final BufferedWriter bestSolutionsWriter;
+    private final BufferedWriter generationSummaryWriter;
     private final Function<S, String> solutionFormatter;
 
     public ExperimentReportWriter(
@@ -38,6 +40,8 @@ public final class ExperimentReportWriter<S>
 
             Path bestSolutionsPath = reportDirectory.resolve("best-solutions.csv");
 
+            Path generationSummaryPath = reportDirectory.resolve("generation-summary.csv");
+
             runsWriter = Files.newBufferedWriter(
                     runsPath,
                     StandardCharsets.UTF_8,
@@ -46,6 +50,12 @@ public final class ExperimentReportWriter<S>
 
             bestSolutionsWriter = Files.newBufferedWriter(
                     bestSolutionsPath,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING);
+
+            generationSummaryWriter = Files.newBufferedWriter(
+                    generationSummaryPath,
                     StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
@@ -96,6 +106,45 @@ public final class ExperimentReportWriter<S>
         } catch (IOException e) {
             throw new AppException(
                     "No se pudo escribir el resultado experimental",
+                    e);
+        }
+    }
+
+    public void writeGenerationSummary(
+            int generation,
+            ConfigurationResult<S> champion) {
+        Objects.requireNonNull(
+                champion,
+                "El campeón de la generación no puede ser null");
+
+        ExperimentParameters p = champion.parameters();
+
+        try {
+            generationSummaryWriter.write(
+                    generation
+                            + "," + champion.meanBestCost()
+                            + "," + champion.medianBestCost()
+                            + "," + champion.standardDeviationBestCost()
+                            + "," + champion.bestCost()
+                            + "," + champion.worstCost()
+                            + "," + champion.meanElapsedNanos()
+                            + "," + p.coolingFactor()
+                            + "," + p.temperatureEpsilon()
+                            + "," + p.batchSize()
+                            + "," + p.maxAttemptFactor()
+                            + "," + p.maxAttemptsPerBatch()
+                            + "," + p.initialTemperatureGuess()
+                            + "," + p.targetAcceptance()
+                            + "," + p.acceptanceEpsilon()
+                            + "," + p.temperatureSamples()
+                            + "," + p.temperatureMaxIterations());
+
+            generationSummaryWriter.newLine();
+            generationSummaryWriter.flush();
+
+        } catch (IOException e) {
+            throw new AppException(
+                    "No se pudo escribir el resumen de la generación",
                     e);
         }
     }
@@ -180,6 +229,27 @@ public final class ExperimentReportWriter<S>
                         + "bestSolution");
 
         bestSolutionsWriter.newLine();
+
+        generationSummaryWriter.write(
+                "generation,"
+                        + "meanBestCost,"
+                        + "medianBestCost,"
+                        + "standardDeviationBestCost,"
+                        + "bestCost,"
+                        + "worstCost,"
+                        + "meanElapsedNanos,"
+                        + "coolingFactor,"
+                        + "temperatureEpsilon,"
+                        + "batchSize,"
+                        + "maxAttemptFactor,"
+                        + "maxAttemptsPerBatch,"
+                        + "initialTemperatureGuess,"
+                        + "targetAcceptance,"
+                        + "acceptanceEpsilon,"
+                        + "temperatureSamples,"
+                        + "temperatureMaxIterations");
+
+        generationSummaryWriter.newLine();
     }
 
     private String escapeCsv(String value) {
@@ -199,7 +269,7 @@ public final class ExperimentReportWriter<S>
         try {
             runsWriter.close();
             bestSolutionsWriter.close();
-
+            generationSummaryWriter.close();
         } catch (IOException e) {
             throw new AppException(
                     "No se pudieron cerrar los archivos de reporte",
