@@ -57,10 +57,10 @@ public final class App {
                 Path tspPath = Path.of(args[1]);
 
                 switch (mode) {
-                        case "n" ->
+                        case "-n" ->
                                 NormalRunner.runNormal(tspPath);
 
-                        case "e" ->
+                        case "-e" ->
                                 ExperimentRunner.runExperiment(tspPath);
 
                         default ->
