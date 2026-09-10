@@ -1,6 +1,7 @@
 package mx.unam.heuristicas;
 
 import mx.unam.heuristicas.heuristic.experiment.*;
+import mx.unam.heuristicas.report.ExperimentReportWriter;
 import mx.unam.heuristicas.config.DatabaseConfig;
 import mx.unam.heuristicas.config.DatabaseConnection;
 import mx.unam.heuristicas.dao.CityDAO;
@@ -25,11 +26,10 @@ import java.util.Objects;
 
 public final class ExperimentRunner {
 
-        
         private ExperimentRunner() {
         }
 
-        public static void runExperiment(Path tspPath, Path propertiesPath) {
+        public static void runExperiment(Path tspPath, Path propertiesPath, Path reportDirectory) {
 
                 Objects.requireNonNull(
                                 tspPath,
@@ -37,6 +37,9 @@ public final class ExperimentRunner {
                 Objects.requireNonNull(
                                 propertiesPath,
                                 "El archivo de propiedades no puede ser null");
+                Objects.requireNonNull(
+                                reportDirectory,
+                                "El directorio de reportes no puede ser null");
 
                 ExperimentConfig config = ExperimentConfig.load(propertiesPath);
 
@@ -74,6 +77,12 @@ public final class ExperimentRunner {
 
                 List<ExperimentParameters> candidates = parameterGenerator.generateInitial();
 
+                ExperimentReportWriter<TspSolution> reportWriter = new ExperimentReportWriter<>(
+                                reportDirectory,
+                                solution -> formatSolution(
+                                                instance,
+                                                solution));
+
                 while (state.generation() < config.generations()) {
 
                         int generation = state.generation();
@@ -94,7 +103,8 @@ public final class ExperimentRunner {
                                         config,
                                         objectiveFunction,
                                         neighborhood,
-                                        state);
+                                        state,
+                                        reportWriter);
 
                         ConfigurationResult<TspSolution> champion = selectChampion(
                                         configurationResults);
@@ -112,6 +122,8 @@ public final class ExperimentRunner {
                         }
                 }
 
+                reportWriter.close();
+
                 printFinalSummary(
                                 state);
         }
@@ -123,7 +135,8 @@ public final class ExperimentRunner {
                         ExperimentConfig config,
                         TspCostFunction objectiveFunction,
                         TspNeighborhood neighborhood,
-                        ExperimentState<TspSolution> state) {
+                        ExperimentState<TspSolution> state,
+                        ExperimentReportWriter<TspSolution> reportWriter) {
 
                 List<ConfigurationResult<TspSolution>> configurationResults = new ArrayList<>(
                                 candidates.size());
@@ -137,8 +150,8 @@ public final class ExperimentRunner {
                                         config,
                                         objectiveFunction,
                                         neighborhood,
-                                        state);
-
+                                        state,
+                                        reportWriter);   
                         configurationResults.add(
                                         configurationResult);
                 }
@@ -153,7 +166,8 @@ public final class ExperimentRunner {
                         ExperimentConfig config,
                         TspCostFunction objectiveFunction,
                         TspNeighborhood neighborhood,
-                        ExperimentState<TspSolution> state) {
+                        ExperimentState<TspSolution> state,
+                        ExperimentReportWriter<TspSolution> reportWriter) {
 
                 long[] seeds = config.seeds();
 
@@ -170,6 +184,8 @@ public final class ExperimentRunner {
                                         objectiveFunction,
                                         neighborhood);
 
+                        reportWriter.writeRun(result);         
+                        
                         results.add(
                                         result);
 
@@ -177,6 +193,8 @@ public final class ExperimentRunner {
                                         result);
 
                         if (newBest) {
+
+                                reportWriter.writeBestSolution(result);
 
                                 System.out.println(
                                                 "Nuevo mejor global"
@@ -394,5 +412,30 @@ public final class ExperimentRunner {
 
                 System.out.println(
                                 "========================================");
+        }
+
+        private static String formatSolution(
+                        TspInstance instance,
+                        TspSolution solution) {
+                StringBuilder builder = new StringBuilder();
+
+                builder.append("[");
+
+                for (int i = 0; i < solution.size(); i++) {
+
+                        if (i > 0) {
+                                builder.append(", ");
+                        }
+
+                        int internalIndex = solution.get(i);
+
+                        int cityId = instance.getCityId(internalIndex);
+
+                        builder.append(cityId);
+                }
+
+                builder.append("]");
+
+                return builder.toString();
         }
 }

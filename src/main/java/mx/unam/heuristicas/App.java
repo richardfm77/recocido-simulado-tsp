@@ -43,13 +43,19 @@ public final class App {
 
         private static void run(String[] args) {
 
-                if (args.length != 3 || (args.length == 1) && args[0].equalsIgnoreCase("-h")) {
+                if ((args.length == 1) && args[0].equalsIgnoreCase("-h")) {
+                        System.out.println(getUsage());
+                        return;
+                } else if (args.length < 3) {
                         throw new AppException(
-                                        """
-                                                        Uso:
-                                                                java -jar programa.jar n archivo.tsp parametros.properties
-                                                                java -jar programa.jar e archivo.tsp parametros.properties
-                                                        """);
+                                        "Número de argumentos inválido. "
+                                                        + "Se esperaban al menos 3 argumentos \n"
+                                                        + getUsage());
+                } else if (args.length > 4) {
+                        throw new AppException(
+                                        "Número de argumentos inválido. "
+                                                        + "Se esperaban como máximo 4 argumentos \n"
+                                                        + getUsage());
                 }
 
                 String mode = args[0].trim().toLowerCase();
@@ -62,12 +68,27 @@ public final class App {
                         case "-n" ->
                                 NormalRunner.runNormal(tspPath, propertiesPath);
 
-                        case "-e" ->
-                                ExperimentRunner.runExperiment(tspPath, propertiesPath);
+                        case "-e" -> {
+                                if (args.length < 4) {
+                                        throw new AppException(
+                                                        "Se esperaba un cuarto argumento para el modo de experimento \n"
+                                                                        + getUsage());
+                                }
+                                Path reportDirectory = Path.of(args[3]);
+                                ExperimentRunner.runExperiment(tspPath, propertiesPath, reportDirectory);
+                        }
 
                         default ->
                                 throw new AppException(
                                                 "Modo desconocido: " + mode);
                 }
+        }
+
+        private static String getUsage() {
+                return """
+                                Uso:
+                                        java -jar programa.jar -n archivo.tsp parametros.properties
+                                        java -jar programa.jar -e archivo.tsp parametros.properties
+                                """;
         }
 }
