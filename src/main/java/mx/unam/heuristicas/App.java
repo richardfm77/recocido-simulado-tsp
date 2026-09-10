@@ -1,22 +1,6 @@
 package mx.unam.heuristicas;
 
-import mx.unam.heuristicas.config.DatabaseConfig;
-import mx.unam.heuristicas.config.DatabaseConnection;
-import mx.unam.heuristicas.config.HeuristicConfig;
-import mx.unam.heuristicas.dao.CityDAO;
-import mx.unam.heuristicas.dao.ConnectionDAO;
-import mx.unam.heuristicas.dao.jdbc.JdbcCityDAO;
-import mx.unam.heuristicas.dao.jdbc.JdbcConnectionDAO;
 import mx.unam.heuristicas.exception.AppException;
-import mx.unam.heuristicas.heuristic.OptimizationResult;
-import mx.unam.heuristicas.heuristic.ThresholdAccepting;
-import mx.unam.heuristicas.heuristic.ThresholdAcceptingParameters;
-import mx.unam.heuristicas.tsp.TspCostFunction;
-import mx.unam.heuristicas.tsp.TspFileReader;
-import mx.unam.heuristicas.tsp.TspInstance;
-import mx.unam.heuristicas.tsp.TspInstanceFactory;
-import mx.unam.heuristicas.tsp.TspNeighborhood;
-import mx.unam.heuristicas.tsp.TspSolution;
 
 import java.nio.file.Path;
 
