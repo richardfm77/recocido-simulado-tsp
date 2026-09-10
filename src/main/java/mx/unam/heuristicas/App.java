@@ -43,12 +43,12 @@ public final class App {
 
         private static void run(String[] args) {
 
-                if (args.length != 2) {
+                if (args.length != 3 || (args.length == 1) && args[0].equalsIgnoreCase("-h")) {
                         throw new AppException(
                                         """
                                                         Uso:
-                                                                java -jar programa.jar n archivo.tsp
-                                                                java -jar programa.jar e archivo.tsp
+                                                                java -jar programa.jar n archivo.tsp parametros.properties
+                                                                java -jar programa.jar e archivo.tsp parametros.properties
                                                         """);
                 }
 
@@ -56,12 +56,14 @@ public final class App {
 
                 Path tspPath = Path.of(args[1]);
 
+                Path propertiesPath = Path.of(args[2]);
+
                 switch (mode) {
                         case "-n" ->
-                                NormalRunner.runNormal(tspPath);
+                                NormalRunner.runNormal(tspPath, propertiesPath);
 
                         case "-e" ->
-                                ExperimentRunner.runExperiment(tspPath);
+                                ExperimentRunner.runExperiment(tspPath, propertiesPath);
 
                         default ->
                                 throw new AppException(

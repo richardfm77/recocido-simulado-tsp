@@ -20,155 +20,156 @@ import mx.unam.heuristicas.tsp.TspNeighborhood;
 import mx.unam.heuristicas.tsp.TspSolution;
 
 public class NormalRunner {
-    public static void runNormal(Path tspPath) {
-        int[] cityIds = TspFileReader.read(
-                tspPath);
+        public static void runNormal(Path tspPath, Path propertiesPath) {
+                int[] cityIds = TspFileReader.read(
+                                tspPath);
 
-        DatabaseConnection databaseConnection = new DatabaseConnection(
-                new DatabaseConfig("application.properties"));
+                DatabaseConnection databaseConnection = new DatabaseConnection(
+                                new DatabaseConfig("application.properties"));
 
-        CityDAO cityDAO = new JdbcCityDAO(
-                databaseConnection);
+                CityDAO cityDAO = new JdbcCityDAO(
+                                databaseConnection);
 
-        ConnectionDAO connectionDAO = new JdbcConnectionDAO(
-                databaseConnection);
+                ConnectionDAO connectionDAO = new JdbcConnectionDAO(
+                                databaseConnection);
 
-        TspInstanceFactory factory = new TspInstanceFactory(
-                cityDAO,
-                connectionDAO);
+                TspInstanceFactory factory = new TspInstanceFactory(
+                                cityDAO,
+                                connectionDAO);
 
-        TspInstance instance = factory.create(
-                cityIds);
+                TspInstance instance = factory.create(
+                                cityIds);
 
-        TspSolution initialSolution = TspSolution.initial(
-                instance.size());
+                TspSolution initialSolution = TspSolution.initial(
+                                instance.size());
 
-        TspCostFunction costFunction = new TspCostFunction(
-                instance);
+                TspCostFunction costFunction = new TspCostFunction(
+                                instance);
 
-        TspNeighborhood neighborhood = new TspNeighborhood();
+                TspNeighborhood neighborhood = new TspNeighborhood();
 
-        HeuristicConfig heuristicConfig = new HeuristicConfig("heuristic.properties");
+                HeuristicConfig heuristicConfig = new HeuristicConfig(
+                                propertiesPath);
 
-        ThresholdAcceptingParameters parameters = heuristicConfig.getParameters();
+                ThresholdAcceptingParameters parameters = heuristicConfig.getParameters();
 
-        ThresholdAccepting<TspSolution> heuristic = new ThresholdAccepting<>(
-                costFunction,
-                neighborhood,
-                parameters);
+                ThresholdAccepting<TspSolution> heuristic = new ThresholdAccepting<>(
+                                costFunction,
+                                neighborhood,
+                                parameters);
 
-        double initialCost = costFunction.evaluate(initialSolution);
+                double initialCost = costFunction.evaluate(initialSolution);
 
-        long startTime = System.nanoTime();
-        OptimizationResult<TspSolution> result = heuristic.optimize(
-                initialSolution,
-                heuristicConfig.getSeed());
-        long endTime = System.nanoTime();
+                long startTime = System.nanoTime();
+                OptimizationResult<TspSolution> result = heuristic.optimize(
+                                initialSolution,
+                                heuristicConfig.getSeed());
+                long endTime = System.nanoTime();
 
-        long elapsedNanos = endTime - startTime;
+                long elapsedNanos = endTime - startTime;
 
-        printResult(
-                instance,
-                initialSolution,
-                initialCost,
-                result,
-                elapsedNanos);
-    }
-
-    private static void printResult(
-            TspInstance instance,
-            TspSolution initialSolution,
-            double initialCost,
-            OptimizationResult<TspSolution> result,
-            long elapsedNanos) {
-
-        double elapsedMilliseconds = elapsedNanos / 1_000_000.0;
-
-        double elapsedSeconds = elapsedNanos / 1_000_000_000.0;
-
-        System.out.println();
-        System.out.println(
-                "========== RESULTADO ==========");
-
-        System.out.println(
-                "Semilla: "
-                        + result.seed());
-        System.out.println(
-                "Normalizador: "
-                        + instance.getNormalizer());
-
-        System.out.println(
-                "Costo inicial: "
-                        + initialCost);
-
-        System.out.println(
-                "Mejor costo: "
-                        + result.bestCost());
-
-        System.out.println(
-                "Costo final: "
-                        + result.finalCost());
-
-        System.out.println(
-                "Solución inicial: "
-                        + toRealCityIds(
+                printResult(
                                 instance,
-                                initialSolution));
-
-        System.out.println(
-                "Mejor solución: "
-                        + toRealCityIds(
-                                instance,
-                                result.bestSolution()));
-
-        System.out.println(
-                "Solución final: "
-                        + toRealCityIds(
-                                instance,
-                                result.finalSolution()));
-
-        System.out.println(
-                "Vecinos generados: "
-                        + result.generatedNeighbors());
-
-        System.out.println(
-                "Vecinos aceptados: "
-                        + result.acceptedNeighbors());
-
-        System.out.println(
-                "Niveles de temperatura: "
-                        + result.temperatureLevels());
-
-        System.out.printf(
-                "Tiempo total: %.3f ms (%.6f s)%n",
-                elapsedMilliseconds,
-                elapsedSeconds);
-
-        System.out.println(
-                "===============================");
-    }
-
-    private static String toRealCityIds(
-            TspInstance instance,
-            TspSolution solution) {
-
-        StringBuilder builder = new StringBuilder();
-
-        for (int i = 0; i < solution.size(); i++) {
-
-            if (i > 0) {
-                builder.append(",");
-            }
-
-            int internalIndex = solution.get(i);
-
-            int cityId = instance.getCityId(
-                    internalIndex);
-
-            builder.append(
-                    cityId);
+                                initialSolution,
+                                initialCost,
+                                result,
+                                elapsedNanos);
         }
 
-        return builder.toString();
-    }
+        private static void printResult(
+                        TspInstance instance,
+                        TspSolution initialSolution,
+                        double initialCost,
+                        OptimizationResult<TspSolution> result,
+                        long elapsedNanos) {
+
+                double elapsedMilliseconds = elapsedNanos / 1_000_000.0;
+
+                double elapsedSeconds = elapsedNanos / 1_000_000_000.0;
+
+                System.out.println();
+                System.out.println(
+                                "========== RESULTADO ==========");
+
+                System.out.println(
+                                "Semilla: "
+                                                + result.seed());
+                System.out.println(
+                                "Normalizador: "
+                                                + instance.getNormalizer());
+
+                System.out.println(
+                                "Costo inicial: "
+                                                + initialCost);
+
+                System.out.println(
+                                "Mejor costo: "
+                                                + result.bestCost());
+
+                System.out.println(
+                                "Costo final: "
+                                                + result.finalCost());
+
+                System.out.println(
+                                "Solución inicial: "
+                                                + toRealCityIds(
+                                                                instance,
+                                                                initialSolution));
+
+                System.out.println(
+                                "Mejor solución: "
+                                                + toRealCityIds(
+                                                                instance,
+                                                                result.bestSolution()));
+
+                System.out.println(
+                                "Solución final: "
+                                                + toRealCityIds(
+                                                                instance,
+                                                                result.finalSolution()));
+
+                System.out.println(
+                                "Vecinos generados: "
+                                                + result.generatedNeighbors());
+
+                System.out.println(
+                                "Vecinos aceptados: "
+                                                + result.acceptedNeighbors());
+
+                System.out.println(
+                                "Niveles de temperatura: "
+                                                + result.temperatureLevels());
+
+                System.out.printf(
+                                "Tiempo total: %.3f ms (%.6f s)%n",
+                                elapsedMilliseconds,
+                                elapsedSeconds);
+
+                System.out.println(
+                                "===============================");
+        }
+
+        private static String toRealCityIds(
+                        TspInstance instance,
+                        TspSolution solution) {
+
+                StringBuilder builder = new StringBuilder();
+
+                for (int i = 0; i < solution.size(); i++) {
+
+                        if (i > 0) {
+                                builder.append(",");
+                        }
+
+                        int internalIndex = solution.get(i);
+
+                        int cityId = instance.getCityId(
+                                        internalIndex);
+
+                        builder.append(
+                                        cityId);
+                }
+
+                return builder.toString();
+        }
 }

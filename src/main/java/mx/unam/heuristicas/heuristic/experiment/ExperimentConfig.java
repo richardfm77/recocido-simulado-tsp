@@ -4,6 +4,8 @@ import mx.unam.heuristicas.exception.AppException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -165,9 +167,9 @@ public final class ExperimentConfig {
         validate();
     }
 
-    public static ExperimentConfig load(String resource) {
+    public static ExperimentConfig load(Path resource) {
 
-        if (resource == null || resource.isBlank()) {
+        if (resource == null) {
             throw new IllegalArgumentException(
                     "El archivo de configuración no puede ser null o vacío"
             );
@@ -176,9 +178,7 @@ public final class ExperimentConfig {
         Properties properties =
                 new Properties();
 
-        try (InputStream input =
-                     ExperimentConfig.class
-                             .getResourceAsStream(resource)) {
+        try (InputStream input = Files.newInputStream(resource)) {
 
             if (input == null) {
                 throw new AppException(

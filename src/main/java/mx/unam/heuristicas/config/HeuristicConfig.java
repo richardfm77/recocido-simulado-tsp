@@ -5,6 +5,8 @@ import mx.unam.heuristicas.heuristic.ThresholdAcceptingParameters;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public final class HeuristicConfig {
@@ -12,15 +14,11 @@ public final class HeuristicConfig {
     private final Properties properties =
             new Properties();
 
-    public HeuristicConfig(String resourceName) {
+    public HeuristicConfig(Path resourceName) {
 
         try (
-                InputStream input =
-                        getClass()
-                                .getClassLoader()
-                                .getResourceAsStream(
-                                        resourceName
-                                )
+                InputStream input = Files.newInputStream(resourceName);
+                        
         ) {
 
             if (input == null) {

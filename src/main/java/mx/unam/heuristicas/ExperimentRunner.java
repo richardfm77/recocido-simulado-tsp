@@ -25,19 +25,20 @@ import java.util.Objects;
 
 public final class ExperimentRunner {
 
-        private static final String EXPERIMENT_CONFIG = "/experiment.properties";
-
+        
         private ExperimentRunner() {
         }
 
-        public static void runExperiment(Path tspPath) {
+        public static void runExperiment(Path tspPath, Path propertiesPath) {
 
                 Objects.requireNonNull(
                                 tspPath,
                                 "El archivo TSP no puede ser null");
+                Objects.requireNonNull(
+                                propertiesPath,
+                                "El archivo de propiedades no puede ser null");
 
-                ExperimentConfig config = ExperimentConfig.load(
-                                EXPERIMENT_CONFIG);
+                ExperimentConfig config = ExperimentConfig.load(propertiesPath);
 
                 int[] cityIds = TspFileReader.read(
                                 tspPath);
