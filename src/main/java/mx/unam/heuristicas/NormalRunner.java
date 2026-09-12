@@ -12,6 +12,7 @@ import mx.unam.heuristicas.dao.jdbc.JdbcConnectionDAO;
 import mx.unam.heuristicas.heuristic.OptimizationResult;
 import mx.unam.heuristicas.heuristic.ThresholdAccepting;
 import mx.unam.heuristicas.heuristic.ThresholdAcceptingParameters;
+import mx.unam.heuristicas.report.AcceptedEvaluationsReportWriter;
 import mx.unam.heuristicas.tsp.TspCostFunction;
 import mx.unam.heuristicas.tsp.TspFileReader;
 import mx.unam.heuristicas.tsp.TspInstance;
@@ -20,7 +21,7 @@ import mx.unam.heuristicas.tsp.TspNeighborhood;
 import mx.unam.heuristicas.tsp.TspSolution;
 
 public class NormalRunner {
-        public static void runNormal(Path tspPath, Path propertiesPath) {
+        public static void runNormal(Path tspPath, Path propertiesPath, Path reportDirectory) {
                 int[] cityIds = TspFileReader.read(
                                 tspPath);
 
@@ -53,10 +54,14 @@ public class NormalRunner {
 
                 ThresholdAcceptingParameters parameters = heuristicConfig.getParameters();
 
+                AcceptedEvaluationsReportWriter reportWriter = new AcceptedEvaluationsReportWriter(
+                                reportDirectory);
+
                 ThresholdAccepting<TspSolution> heuristic = new ThresholdAccepting<>(
                                 costFunction,
                                 neighborhood,
-                                parameters);
+                                parameters,
+                                reportWriter :: write);
 
                 double initialCost = costFunction.evaluate(initialSolution);
 
@@ -67,6 +72,8 @@ public class NormalRunner {
                 long endTime = System.nanoTime();
 
                 long elapsedNanos = endTime - startTime;
+
+                reportWriter.close();
 
                 printResult(
                                 instance,

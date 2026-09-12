@@ -5,258 +5,242 @@ import mx.unam.heuristicas.util.DoublePrecision;
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
+import java.util.function.DoubleConsumer;
 
 public class ThresholdAccepting<S>
-        implements Heuristic<S> {
+                implements Heuristic<S> {
 
-    private final ObjectiveFunction<S> objectiveFunction;
-    private final Neighborhood<S> neighborhood;
-    private final ThresholdAcceptingParameters parameters;
+        private final ObjectiveFunction<S> objectiveFunction;
+        private final Neighborhood<S> neighborhood;
+        private final ThresholdAcceptingParameters parameters;
+        private final DoubleConsumer acceptedEvaluationConsumer;
 
-    public ThresholdAccepting(
-            ObjectiveFunction<S> objectiveFunction,
-            Neighborhood<S> neighborhood,
-            ThresholdAcceptingParameters parameters
-    ) {
-        this.objectiveFunction =
-                Objects.requireNonNull(objectiveFunction);
+        public ThresholdAccepting(
+                        ObjectiveFunction<S> objectiveFunction,
+                        Neighborhood<S> neighborhood,
+                        ThresholdAcceptingParameters parameters) {
+                this(
+                                objectiveFunction,
+                                neighborhood,
+                                parameters,
+                                evaluation -> {
+                                });
+        }
 
-        this.neighborhood =
-                Objects.requireNonNull(neighborhood);
+        public ThresholdAccepting(
+                        ObjectiveFunction<S> objectiveFunction,
+                        Neighborhood<S> neighborhood,
+                        ThresholdAcceptingParameters parameters,
+                        DoubleConsumer acceptedEvaluationConsumer) {
+                this.objectiveFunction = Objects.requireNonNull(
+                                objectiveFunction);
 
-        this.parameters =
-                Objects.requireNonNull(parameters);
-    }
+                this.neighborhood = Objects.requireNonNull(
+                                neighborhood);
 
-    @Override
-    public OptimizationResult<S> optimize(
-            S initialSolution,
-            long seed
-    ) {
+                this.parameters = Objects.requireNonNull(
+                                parameters);
 
-        Objects.requireNonNull(
-                initialSolution,
-                "La solución inicial no puede ser null"
-        );
+                this.acceptedEvaluationConsumer = Objects.requireNonNull(
+                                acceptedEvaluationConsumer);
+        }
 
-        RandomGenerator random = new Random(seed);
+        @Override
+        public OptimizationResult<S> optimize(
+                        S initialSolution,
+                        long seed) {
 
-        S currentSolution = initialSolution;
-        double currentCost =
-                evaluate(currentSolution);
+                Objects.requireNonNull(
+                                initialSolution,
+                                "La solución inicial no puede ser null");
 
-        S bestSolution = currentSolution;
-        double bestCost = currentCost;
+                RandomGenerator random = new Random(seed);
 
-        double temperature =
-                parameters.initialTemperature();
+                S currentSolution = initialSolution;
+                double currentCost = evaluate(currentSolution);
 
-        double previousAverage = 0.0;
+                S bestSolution = currentSolution;
+                double bestCost = currentCost;
 
-        long generatedNeighbors = 0;
-        long acceptedNeighbors = 0;
+                double temperature = parameters.initialTemperature();
 
-        int temperatureLevels = 0;
+                double previousAverage = 0.0;
 
-        while (DoublePrecision.greaterThan(
-                temperature,
-                parameters.temperatureEpsilon()
-        )) {
+                long generatedNeighbors = 0;
+                long acceptedNeighbors = 0;
 
-            double currentAverage =
-                    Double.POSITIVE_INFINITY;
+                int temperatureLevels = 0;
 
-            while (DoublePrecision.lessThanOrEqual(
-                    previousAverage,
-                    currentAverage
-            )) {
-
-                currentAverage = previousAverage;
-
-                BatchResult<S> batch =
-                        calculateBatch(
+                while (DoublePrecision.greaterThan(
                                 temperature,
+                                parameters.temperatureEpsilon())) {
+
+                        double currentAverage = Double.POSITIVE_INFINITY;
+
+                        while (DoublePrecision.lessThanOrEqual(
+                                        previousAverage,
+                                        currentAverage)) {
+
+                                currentAverage = previousAverage;
+
+                                BatchResult<S> batch = calculateBatch(
+                                                temperature,
+                                                currentSolution,
+                                                currentCost,
+                                                random);
+
+                                generatedNeighbors += batch.generatedNeighbors();
+
+                                acceptedNeighbors += batch.acceptedNeighbors();
+
+                                /*
+                                 * Si el lote no pudo completarse,
+                                 * dejamos de buscar equilibrio para
+                                 * esta temperatura.
+                                 */
+                                if (!batch.completed()) {
+                                        break;
+                                }
+
+                                previousAverage = batch.averageCost();
+
+                                currentSolution = batch.lastSolution();
+
+                                currentCost = batch.lastCost();
+
+                                if (DoublePrecision.lessThan(
+                                                batch.bestCost(),
+                                                bestCost)) {
+                                        bestSolution = batch.bestSolution();
+
+                                        bestCost = batch.bestCost();
+                                }
+                        }
+
+                        temperature *= parameters.coolingFactor();
+
+                        temperatureLevels++;
+                }
+
+                return new OptimizationResult<>(
+                                bestSolution,
+                                bestCost,
                                 currentSolution,
                                 currentCost,
-                                random
-                        );
+                                seed,
+                                generatedNeighbors,
+                                acceptedNeighbors,
+                                temperatureLevels);
+        }
 
-                generatedNeighbors +=
-                        batch.generatedNeighbors();
+        private BatchResult<S> calculateBatch(
+                        double temperature,
+                        S initialSolution,
+                        double initialCost,
+                        RandomGenerator random) {
 
-                acceptedNeighbors +=
-                        batch.acceptedNeighbors();
+                S currentSolution = initialSolution;
+                double currentCost = initialCost;
 
-                /*
-                 * Si el lote no pudo completarse,
-                 * dejamos de buscar equilibrio para
-                 * esta temperatura.
-                 */
-                if (!batch.completed()) {
-                    break;
+                S bestSolution = initialSolution;
+                double bestCost = initialCost;
+
+                int accepted = 0;
+                int attempts = 0;
+
+                double accumulatedCost = 0.0;
+
+                while (accepted < parameters.batchSize()
+                                &&
+                                attempts < parameters.maxAttemptsPerBatch()) {
+
+                        attempts++;
+
+                        S neighbor = neighborhood.generateNeighbor(
+                                        currentSolution,
+                                        random);
+
+                        Objects.requireNonNull(
+                                        neighbor,
+                                        "Neighborhood devolvió null");
+
+                        double neighborCost = evaluate(neighbor);
+
+                        /*
+                         * f(s') <= f(s) + T
+                         */
+                        if (DoublePrecision.lessThanOrEqual(
+                                        neighborCost,
+                                        currentCost + temperature)) {
+
+                                acceptedEvaluationConsumer.accept(
+                                                neighborCost);
+
+                                currentSolution = neighbor;
+                                currentCost = neighborCost;
+
+                                accepted++;
+
+                                accumulatedCost += neighborCost;
+
+                                if (DoublePrecision.lessThan(
+                                                neighborCost,
+                                                bestCost)) {
+                                        bestSolution = neighbor;
+                                        bestCost = neighborCost;
+                                }
+                        }
                 }
 
-                previousAverage =
-                        batch.averageCost();
+                boolean completed = accepted == parameters.batchSize();
 
-                currentSolution =
-                        batch.lastSolution();
+                double averageCost = completed
+                                ? accumulatedCost
+                                                / parameters.batchSize()
+                                : Double.NaN;
 
-                currentCost =
-                        batch.lastCost();
+                return new BatchResult<>(
+                                averageCost,
+                                currentSolution,
+                                currentCost,
+                                bestSolution,
+                                bestCost,
+                                attempts,
+                                accepted,
+                                completed);
+        }
 
-                if (DoublePrecision.lessThan(
-                        batch.bestCost(),
-                        bestCost
-                )) {
-                    bestSolution =
-                            batch.bestSolution();
+        private double evaluate(S solution) {
 
-                    bestCost =
-                            batch.bestCost();
+                double cost = objectiveFunction.evaluate(solution);
+
+                if (!Double.isFinite(cost)) {
+                        throw new IllegalArgumentException(
+                                        "La función objetivo produjo "
+                                                        + "un costo no finito: "
+                                                        + cost);
                 }
-            }
 
-            temperature *=
-                    parameters.coolingFactor();
+                if (cost < 0.0
+                                && !DoublePrecision.equals(cost, 0.0)) {
 
-            temperatureLevels++;
-        }
-
-        return new OptimizationResult<>(
-                bestSolution,
-                bestCost,
-                currentSolution,
-                currentCost,
-                seed,
-                generatedNeighbors,
-                acceptedNeighbors,
-                temperatureLevels
-        );
-    }
-
-    private BatchResult<S> calculateBatch(
-            double temperature,
-            S initialSolution,
-            double initialCost,
-            RandomGenerator random
-    ) {
-
-        S currentSolution = initialSolution;
-        double currentCost = initialCost;
-
-        S bestSolution = initialSolution;
-        double bestCost = initialCost;
-
-        int accepted = 0;
-        int attempts = 0;
-
-        double accumulatedCost = 0.0;
-
-        while (
-                accepted < parameters.batchSize()
-                &&
-                attempts < parameters.maxAttemptsPerBatch()
-        ) {
-
-            attempts++;
-
-            S neighbor =
-                    neighborhood.generateNeighbor(
-                            currentSolution,
-                            random
-                    );
-
-            Objects.requireNonNull(
-                    neighbor,
-                    "Neighborhood devolvió null"
-            );
-
-            double neighborCost =
-                    evaluate(neighbor);
-
-            /*
-             * f(s') <= f(s) + T
-             */
-            if (DoublePrecision.lessThanOrEqual(
-                    neighborCost,
-                    currentCost + temperature
-            )) {
-
-                currentSolution = neighbor;
-                currentCost = neighborCost;
-
-                accepted++;
-
-                accumulatedCost +=
-                        neighborCost;
-
-                if (DoublePrecision.lessThan(
-                        neighborCost,
-                        bestCost
-                )) {
-                    bestSolution = neighbor;
-                    bestCost = neighborCost;
+                        throw new IllegalArgumentException(
+                                        "La función objetivo produjo "
+                                                        + "un costo negativo: "
+                                                        + cost);
                 }
-            }
+
+                return cost;
         }
 
-        boolean completed =
-                accepted == parameters.batchSize();
-
-        double averageCost =
-                completed
-                        ? accumulatedCost
-                            / parameters.batchSize()
-                        : Double.NaN;
-
-        return new BatchResult<>(
-                averageCost,
-                currentSolution,
-                currentCost,
-                bestSolution,
-                bestCost,
-                attempts,
-                accepted,
-                completed
-        );
-    }
-
-    private double evaluate(S solution) {
-
-        double cost =
-                objectiveFunction.evaluate(solution);
-
-        if (!Double.isFinite(cost)) {
-            throw new IllegalArgumentException(
-                    "La función objetivo produjo "
-                    + "un costo no finito: "
-                    + cost
-            );
+        private record BatchResult<S>(
+                        double averageCost,
+                        S lastSolution,
+                        double lastCost,
+                        S bestSolution,
+                        double bestCost,
+                        int generatedNeighbors,
+                        int acceptedNeighbors,
+                        boolean completed) {
         }
-
-        if (cost < 0.0
-                && !DoublePrecision.equals(cost, 0.0)) {
-
-            throw new IllegalArgumentException(
-                    "La función objetivo produjo "
-                    + "un costo negativo: "
-                    + cost
-            );
-        }
-
-        return cost;
-    }
-
-    private record BatchResult<S>(
-            double averageCost,
-            S lastSolution,
-            double lastCost,
-            S bestSolution,
-            double bestCost,
-            int generatedNeighbors,
-            int acceptedNeighbors,
-            boolean completed
-    ) {
-    }
 }

@@ -46,15 +46,10 @@ public final class App {
                 if ((args.length == 1) && args[0].equalsIgnoreCase("-h")) {
                         System.out.println(getUsage());
                         return;
-                } else if (args.length < 3) {
+                } else if (args.length != 4) {
                         throw new AppException(
                                         "Número de argumentos inválido. "
-                                                        + "Se esperaban al menos 3 argumentos \n"
-                                                        + getUsage());
-                } else if (args.length > 4) {
-                        throw new AppException(
-                                        "Número de argumentos inválido. "
-                                                        + "Se esperaban como máximo 4 argumentos \n"
+                                                        + "Se esperaban 4 argumentos \n"
                                                         + getUsage());
                 }
 
@@ -64,19 +59,14 @@ public final class App {
 
                 Path propertiesPath = Path.of(args[2]);
 
+                Path reportDirectory = Path.of(args[3]);
+
                 switch (mode) {
                         case "-n" ->
-                                NormalRunner.runNormal(tspPath, propertiesPath);
+                                NormalRunner.runNormal(tspPath, propertiesPath, reportDirectory);
 
-                        case "-e" -> {
-                                if (args.length < 4) {
-                                        throw new AppException(
-                                                        "Se esperaba un cuarto argumento para el modo de experimento \n"
-                                                                        + getUsage());
-                                }
-                                Path reportDirectory = Path.of(args[3]);
+                        case "-e" ->
                                 ExperimentRunner.runExperiment(tspPath, propertiesPath, reportDirectory);
-                        }
 
                         default ->
                                 throw new AppException(
