@@ -93,17 +93,6 @@ public class ThresholdAccepting<S>
 
                                 acceptedNeighbors += batch.acceptedNeighbors();
 
-                                /*
-                                 * Si el lote no pudo completarse,
-                                 * dejamos de buscar equilibrio para
-                                 * esta temperatura.
-                                 */
-                                if (!batch.completed()) {
-                                        break;
-                                }
-
-                                previousAverage = batch.averageCost();
-
                                 currentSolution = batch.lastSolution();
 
                                 currentCost = batch.lastCost();
@@ -115,6 +104,17 @@ public class ThresholdAccepting<S>
 
                                         bestCost = batch.bestCost();
                                 }
+
+                                /*
+                                 * Si el lote no pudo completarse,
+                                 * dejamos de buscar equilibrio para
+                                 * esta temperatura.
+                                 */
+                                if (!batch.completed()) {
+                                        break;
+                                }
+
+                                previousAverage = batch.averageCost();
                         }
 
                         temperature *= parameters.coolingFactor();
