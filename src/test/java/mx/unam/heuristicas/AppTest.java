@@ -1,4 +1,4 @@
-package mx.unam.optimizacion;
+package mx.unam.heuristicas;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

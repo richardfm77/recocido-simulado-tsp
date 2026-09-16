@@ -1,13 +1,20 @@
-PRAGMA foreign_keys=ON;
-BEGIN TRANSACTION;
-CREATE TABLE cities (
-       id                INTEGER PRIMARY KEY,
-       name              TEXT,
-       country           TEXT,
-       population        INTEGER,
-       latitude          DOUBLE,
-       longitude         DOUBLE
+BEGIN;
+
+DROP SCHEMA IF EXISTS tsp CASCADE;
+
+CREATE SCHEMA tsp;
+
+CREATE TABLE tsp.cities (
+    id          INTEGER PRIMARY KEY,
+    name        TEXT,
+    country     TEXT,
+    population  INTEGER,
+    latitude    DOUBLE PRECISION,
+    longitude   DOUBLE PRECISION
 );
+
+SET search_path TO tsp;
+
 INSERT INTO cities VALUES(1,'Tokyo','Japan',31480498,35.68500000000000227,139.7510000000000047);
 INSERT INTO cities VALUES(2,'Shanghai','China',14608512,31.0456000000000003,121.4000000000000056);
 INSERT INTO cities VALUES(3,'Bombay','India',12692717,18.97500000000000143,72.82580000000000097);
@@ -1100,14 +1107,21 @@ INSERT INTO cities VALUES(1089,'Kashan','Iran',301107,33.98879999999999769,51.47
 INSERT INTO cities VALUES(1090,'Brest','Belarus',300716,52.10000000000000142,23.69999999999999929);
 INSERT INTO cities VALUES(1091,'Mardan','Pakistan',300545,34.20190000000000196,72.05249999999999489);
 INSERT INTO cities VALUES(1092,'Surgut','Russian Federation',300371,61.25,73.41670000000000585);
-CREATE TABLE connections (
-       id_city_1      INTEGER,
-       id_city_2      INTEGER,
-       distance       DOUBLE,
-       PRIMARY KEY    (id_city_1, id_city_2),
-       FOREIGN KEY    (id_city_1) REFERENCES cities(id),
-       FOREIGN KEY    (id_city_2) REFERENCES cities(id)
+
+CREATE TABLE tsp.connections (
+    id_city_1  INTEGER,
+    id_city_2  INTEGER,
+    distance   DOUBLE PRECISION,
+
+    PRIMARY KEY (id_city_1, id_city_2),
+
+    FOREIGN KEY (id_city_1)
+        REFERENCES tsp.cities(id),
+
+    FOREIGN KEY (id_city_2)
+        REFERENCES tsp.cities(id)
 );
+
 INSERT INTO connections VALUES(1,7,2999396.231968969572335);
 INSERT INTO connections VALUES(1,9,1158707.308623898541555);
 INSERT INTO connections VALUES(1,19,2100171.726798435207456);
