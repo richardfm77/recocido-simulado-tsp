@@ -8,7 +8,7 @@
 
   <groupId>mx.unam.heuristicas</groupId>
   <artifactId>recocido-simulado-tsp</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -160,6 +160,19 @@
               <createDependencyReducedPom>
                 false
               </createDependencyReducedPom>
+
+              <!--
+                Evita incluir los MANIFEST.MF de las dependencias.
+                El manifiesto final lo genera ManifestResourceTransformer.
+              -->
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                  </excludes>
+                </filter>
+              </filters>
 
               <transformers>
 

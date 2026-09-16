@@ -49,7 +49,7 @@ public final class App {
                 } else if (args.length != 4) {
                         throw new AppException(
                                         "Número de argumentos inválido. "
-                                                        + "Se esperaban 4 argumentos \n"
+                                                        + "Se esperaban 4 argumentos. \n"
                                                         + getUsage());
                 }
 
@@ -77,8 +77,8 @@ public final class App {
         private static String getUsage() {
                 return """
                                 Uso:
-                                        java -jar programa.jar -n archivo.tsp parametros.properties
-                                        java -jar programa.jar -e archivo.tsp parametros.properties
+                                        java -jar programa.jar -n archivo.tsp parametros.properties ruta-reportes/
+                                        java -jar programa.jar -e archivo.tsp parametros.properties ruta-reportes/
                                 """;
         }
 }
