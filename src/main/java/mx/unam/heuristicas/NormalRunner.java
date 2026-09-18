@@ -1,6 +1,7 @@
 package mx.unam.heuristicas;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import mx.unam.heuristicas.config.DatabaseConfig;
 import mx.unam.heuristicas.config.DatabaseConnection;
@@ -12,7 +13,9 @@ import mx.unam.heuristicas.dao.jdbc.JdbcConnectionDAO;
 import mx.unam.heuristicas.heuristic.OptimizationResult;
 import mx.unam.heuristicas.heuristic.ThresholdAccepting;
 import mx.unam.heuristicas.heuristic.ThresholdAcceptingParameters;
+import mx.unam.heuristicas.model.City;
 import mx.unam.heuristicas.report.AcceptedEvaluationsReportWriter;
+import mx.unam.heuristicas.report.TspRouteMapWriter;
 import mx.unam.heuristicas.tsp.TspCostFunction;
 import mx.unam.heuristicas.tsp.TspFileReader;
 import mx.unam.heuristicas.tsp.TspInstance;
@@ -61,7 +64,7 @@ public class NormalRunner {
                                 costFunction,
                                 neighborhood,
                                 parameters,
-                                reportWriter :: write);
+                                reportWriter::write);
 
                 double initialCost = costFunction.evaluate(initialSolution);
 
@@ -74,6 +77,16 @@ public class NormalRunner {
                 long elapsedNanos = endTime - startTime;
 
                 reportWriter.close();
+
+                List<City> cities = cityDAO.findCitiesByIds(cityIds);
+
+                TspRouteMapWriter mapWriter = new TspRouteMapWriter(reportDirectory);
+
+                mapWriter.write(
+                                instance,
+                                result.bestSolution(),
+                                cities,
+                                result.bestCost());
 
                 printResult(
                                 instance,
