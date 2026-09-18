@@ -1530,6 +1530,18 @@ generation-summary.csv
 
 ---
 
+### Mapa de la mejor ruta
+
+En el modo normal (`-n`), además del reporte de evaluaciones aceptadas, se genera automáticamente el archivo:
+
+`mapa-ruta.html`
+
+Este reporte muestra de forma interactiva la mejor ruta encontrada por la heurística sobre un mapa, utilizando las coordenadas geográficas (latitud y longitud) de las ciudades almacenadas en la base de datos.
+
+Cada ciudad aparece marcada siguiendo el orden de visita de la solución encontrada. Al seleccionar un marcador se muestra información de la ciudad, como su nombre, país, identificador y coordenadas.
+
+El mapa puede abrirse directamente desde cualquier navegador web y requiere conexión a Internet para cargar el mapa base de OpenStreetMap.
+
 # `experiment-runs.csv`
 
 Contiene información de cada corrida.
